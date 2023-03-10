@@ -1,7 +1,7 @@
 # Godot Meta Player
-## Adaptive music plugin for Godot 4.0
+### Adaptive music plugin for Godot 4.0
 
-##Setup
+## Setup
 
 Use the `Playback` properties to determine whether this player will loop, and whether it should play automatically on `_ready`. 
 
