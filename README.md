@@ -1,5 +1,5 @@
 # Godot Meta Player
-#### Adaptive music plugin for Godot 4.0
+## Adaptive music plugin for Godot 4.0
 
 ##Setup
 
