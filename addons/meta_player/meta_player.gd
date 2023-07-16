@@ -83,6 +83,8 @@ var last_beat := 0
 var param := 0.0
 var b2bar := 1
 var trans_buffer := {}
+var short := false
+var precision_margin := 0.02
 
 signal beat ## Emitted every beat during playback.
 signal bar ## Emitted at the start of each bar during playback.
@@ -91,6 +93,10 @@ func _ready():
 	if get_parent() is meta_player:
 		is_in_play_group = true
 	beats_in_sec = 60000.0/tempo
+	var stream_length_ms = stream.get_length() * 1000.0
+	var loop_length_ms = beats_in_sec * (bars * beats_per_bar)
+	## Indicates that the stream duration is just equal or slightly shorter than the theorical loop length 
+	short = absf(stream_length_ms - loop_length_ms) <= precision_margin
 	if auto_play:
 		mplay()
 
@@ -214,7 +220,13 @@ func spawn_copy():
 	var c = AudioStreamPlayer.new()
 	add_child(c)
 	c.finished.connect(func():
-		c.queue_free())
+		c.queue_free()
+		if short:
+			if current_beat == bars*beats_per_bar:
+				end()
+			elif !is_in_play_group:
+				push_error("Stream finished before bars count")
+	)
 	c.stream = stream
 	c.volume_db = volume_db
 	c.bus = bus
