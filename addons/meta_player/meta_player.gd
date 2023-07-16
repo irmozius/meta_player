@@ -195,7 +195,7 @@ func mplay():
 
 func connect_trans_signals():
 	for tr in transition_rules:
-		if !tr.signal_name:
+		if tr.signal_name.length() == 0:
 			if tr.transition_type == "At End":
 				var target_player = get_node(tr.target_player)
 				add_trans_buffer(target_player, "At End")
