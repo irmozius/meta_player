@@ -77,11 +77,12 @@ var is_in_play_group := false
 var copy : AudioStreamPlayer
 var beats_in_sec := 0.0
 var time := 0.0
-var current_beat := 1
-var current_bar := 1
+var current_beat := 0
+var current_bar := 0
+var beat_index := -1
 var last_beat := 0
 var param := 0.0
-var b2bar := 1
+var total_beats := 0
 var trans_buffer := {}
 
 signal beat ## Emitted every beat during playback.
@@ -90,7 +91,8 @@ signal bar ## Emitted at the start of each bar during playback.
 func _ready():
 	if get_parent() is meta_player:
 		is_in_play_group = true
-	beats_in_sec = 60000.0/tempo
+	beats_in_sec = 60000.0/float(tempo)
+	total_beats = bars * beats_per_bar
 	if auto_play:
 		mplay()
 
@@ -112,8 +114,9 @@ func calc_beat(_delta):
 	if !copy: return
 	if copy.playing:
 		time = copy.get_playback_position()
-		current_beat = int(floor(((time/beats_in_sec) * 1000.0) + 1.0))
-		if current_beat != last_beat && (current_beat - 1) % int(bars * beats_per_bar) + 1 != last_beat:
+		beat_index = int(floor((time/beats_in_sec) * 1000.0))
+		current_beat = beat_index % total_beats + 1
+		if current_beat != last_beat:
 			_beat()
 		last_beat = current_beat
 	
@@ -175,7 +178,7 @@ func transition(player : meta_player = trans_buffer.player):
 
 func mplay():
 	spawn_copy()
-	current_bar = 1
+	current_bar = 0
 	connect_trans_signals()
 	if automate_volume and target:
 		assert(automation_rule, str("No automation rule has been defined for %s, but it is set to automate." % name))
@@ -192,7 +195,7 @@ func mplay():
 
 func connect_trans_signals():
 	for tr in transition_rules:
-		if !tr.signal_name:
+		if tr.signal_name.length() == 0:
 			if tr.transition_type == "At End":
 				var target_player = get_node(tr.target_player)
 				add_trans_buffer(target_player, "At End")
@@ -231,12 +234,9 @@ func _beat():
 		transition()
 		return
 	var _s = emit_signal("beat", current_beat)
-	if b2bar < (beats_per_bar):
-		b2bar += 1
-	else:
-		b2bar = 1
+	if beat_index % beats_per_bar == 0:
 		_bar()
-	if current_beat == (bars*beats_per_bar + 1):
+	if beat_index == total_beats:
 		end()
 
 func _bar():
@@ -244,7 +244,7 @@ func _bar():
 	if trans:
 		transition()
 		return
-	current_bar += 1
+	current_bar = floor(beat_index / beats_per_bar) + 1
 	var _s = emit_signal("bar", current_bar)
 
 func on_beat(b):
