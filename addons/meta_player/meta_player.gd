@@ -98,7 +98,7 @@ func _ready():
 	var loop_length_ms = beats_in_sec * (bars * beats_per_bar)
 	## Indicates that the stream duration is just equal or slightly shorter than the theorical loop length 
 	short = absf(stream_length_ms - loop_length_ms) <= precision_margin
-  total_beats = bars * beats_per_bar
+  	total_beats = bars * beats_per_bar
 	if auto_play:
 		mplay()
 
