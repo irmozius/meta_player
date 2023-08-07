@@ -98,7 +98,7 @@ func _ready():
 	var loop_length_ms = beats_in_sec * (bars * beats_per_bar)
 	## Indicates that the stream duration is just equal or slightly shorter than the theorical loop length 
 	short = absf(stream_length_ms - loop_length_ms) <= precision_margin
-  	total_beats = bars * beats_per_bar
+	total_beats = bars * beats_per_bar
 	if auto_play:
 		mplay()
 
@@ -109,7 +109,10 @@ func _process(delta):
 		if copy.playing:
 			var t_param := float(target.get(target_param))
 			var smooth := (param_smooth * -1) + 1
-			param = lerp(param, t_param, smooth)
+			if param_smooth != 1.0:
+				param = lerp(param, t_param, smooth)
+			else:
+				param = t_param
 			var range : bool = (automation_rule is range_fade)
 			if range:
 				fade_to(get_range_vol())
@@ -132,7 +135,7 @@ func fade_to(value : float, instant=false) -> void:
 		if copy:
 			copy.volume_db = value
 	else:
-		var above := (volume_db > value) 
+		var above := (volume_db < value) 
 		var sw = seek_down_weight
 		if above:
 			sw = seek_up_weight
